@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:post_project/Models/Post.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -58,38 +60,29 @@ class _MyHomePageState extends State<MyHomePage> {
                                     child: Container(
                                       child: ListView.builder(
                                           scrollDirection: Axis.horizontal,
-                                          itemCount: snapshot
-                                              .data!
-                                              .data!
-                                              .records![index]
-                                              .mainImageURL!
-                                              .length,
+                                          itemCount: snapshot.data!.data!.records![index].mainImageURL!.length,
                                           itemBuilder: (context, position) {
                                             return Column(
                                               children: [
                                                 Container(
-                                                    height:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            .3,
-                                                    width:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            .99,
-                                                    decoration: BoxDecoration(
-                                                        image: DecorationImage(
-                                                            fit: BoxFit.cover,
-                                                            image: NetworkImage(
-                                                                snapshot
-                                                                    .data!
-                                                                    .data!
-                                                                    .records![
-                                                                        index]
-                                                                    .mainImageURL
-                                                                    .toString())))),
-                                              ],
+                                                    height: MediaQuery.of(context).size.height * .3,
+                                                    width: MediaQuery.of(context).size.width *.99,
+                                                   child: CachedNetworkImage(
+                                                     key:UniqueKey(),
+                                            cacheManager:customCasheManager,
+                                            imageUrl: snapshot.data!.data!.records![index].mainImageURL!.toString(),
+                                            imageBuilder: (context, imageProvider) => Container(
+                                            decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                            image: imageProvider,
+                                            fit: BoxFit.cover,
+                                           ),
+                                            ),
+                                            ),
+                                            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                                            errorWidget: (context, url, error) => Icon(Icons.error),
+                                            ),
+                                                )],
                                             );
                                           }),
                                     ),
@@ -318,4 +311,14 @@ class _MyHomePageState extends State<MyHomePage> {
     Duration diff = dateB1.difference(dateA1);
     return diff.inDays.toString();
   }
+
+ static final customCasheManager=CacheManager(
+ Config(
+   'customCasheKey',
+   stalePeriod: Duration(days: 7),
+   maxNrOfCacheObjects: 20
+ ),
+ );
+
+
 }
